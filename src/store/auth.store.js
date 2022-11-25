@@ -35,7 +35,9 @@ export const useAuthStore = defineStore('auth', () => {
   // const isAuthenticate = computed(()=>{
   //   this.user !== null;
   // });
-
+  // const getRole = computed(()=>{
+  //    return this.user.userrole;
+  //   });
   const logout = function () {
     this.user = null;
     localStorage.removeItem('user');

@@ -69,11 +69,7 @@
 						<Textarea id="description" v-model="indicator.description" required="true" rows="3" cols="20" />
 					</div>
 					
-					<div class="field">
-						<label for="directionId" class="mb-3">Dirección</label>
-						<AutoComplete placeholder="Buscar Dirección" id="directionId" :dropdown="true"  v-model="direction" :suggestions="autoFilteredDirections" @complete="searchDirections($event)" :force-selection="true" field="name"/>
-						
-					</div>
+					
 
 					<div class="field">
 						<label for="measurementunitId" class="mb-3">Unidad de medida</label>
@@ -109,7 +105,7 @@
 						<Button label="Si" icon="pi pi-check" class="p-button-text" @click="deleteSelectedIndicators" />
 					</template>
 				</Dialog>
-			</div>
+			</div>    
 		</div>
 	</div>
 
