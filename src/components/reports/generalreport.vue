@@ -7,18 +7,22 @@
                 field="name" @item-select="loadData(direction.id)" />
 
         </div>
-       
+      
         <div v-if="loading">
             cargando...
             <ProgressSpinner />
             <ProgressSpinner aria-label="Basic ProgressSpinner" />
         </div>
-        <div v-show="!loading">
+        <div v-if="!indicadores || indicadores.length === 0">
+           No hay indicadores para esta direccion...
+            
+        </div>
+        <div v-show="!loading ">
             <!-- class="p-datatable p-component p-datatable-responsive-scroll p-datatable-grouped-header p-datatable-grouped-footer"> -->
 
             <div class="p-datatable-wrapper">
                 <!-- <table class="p-datatable-table" v-if="indicadores"> -->
-                <table class="tabla" v-if="indicadores">
+                <table class="tabla" v-if="indicadores && indicadores.length > 0">
                     <!-- <thead class="p-datatable-thead"> -->
                     <thead class="">
                         <tr>
@@ -87,7 +91,7 @@ export default {
     data() {
         return {
             sales: null,
-            indicadores: null,
+            indicadores: [],
             autoFilteredDirections: [],
             directions: null,
             direction: null,
