@@ -1,8 +1,21 @@
 <template>
     <div class="card">
-        <div>
+        <div class="field">
+            <label for="directionId" class="mb-3">Dirección</label>
+            <AutoComplete placeholder="Buscar dirección" id="directionId" :dropdown="true" v-model="direction"
+                :suggestions="autoFilteredDirections" @complete="searchDirections($event)" :force-selection="true"
+                field="name" @item-select="loadData(direction.id)" />
+
+        </div>
+       
+        <div v-if="loading">
+            cargando...
+            <ProgressSpinner />
+            <ProgressSpinner aria-label="Basic ProgressSpinner" />
+        </div>
+        <div v-show="!loading">
             <!-- class="p-datatable p-component p-datatable-responsive-scroll p-datatable-grouped-header p-datatable-grouped-footer"> -->
-           
+
             <div class="p-datatable-wrapper">
                 <!-- <table class="p-datatable-table" v-if="indicadores"> -->
                 <table class="tabla" v-if="indicadores">
@@ -11,7 +24,7 @@
                         <tr>
                             <th rowspan="3">
                                 <div class="">
-                                <!-- <div class="p-column-header-content"> -->
+                                    <!-- <div class="p-column-header-content"> -->
                                     <span class="p-column-title">Indicadores</span>
                                 </div>
 
@@ -45,14 +58,14 @@
                         </tr>
                     </thead>
                     <tbody class="">
-                    <!-- <tbody class="p-datatable-tbody"> -->
+                        <!-- <tbody class="p-datatable-tbody"> -->
                         <tr v-for="indicador in indicadores">
                             <td>{{ indicador.name }}</td>
                             <template v-for="empresa in indicador.companies">
-                                <td >
+                                <td>
                                     {{ empresa.planification }}
                                 </td>
-                                <td >
+                                <td>
                                     {{ empresa.value }}
                                 </td>
                             </template>
@@ -69,11 +82,16 @@
 
 <script>
 import axios from 'axios';
+import { useAuthStore } from '../../store/auth.store';
 export default {
     data() {
         return {
             sales: null,
             indicadores: null,
+            autoFilteredDirections: [],
+            directions: null,
+            direction: null,
+            loading: true,
         }
     },
     created() {
@@ -83,13 +101,39 @@ export default {
         formatCurrency(value) {
             return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
         },
-        async loadData() {
+        async loadData(id) {
+            this.loading = true;
             try {
-               const resource  = await axios.get("http://localhost:3000/reports/general_report/1");
-                 this.indicadores = resource.data;
-                } catch (e) {
+                const resource = await axios.get(`http://localhost:3000/reports/general_report/${id}`);
+                this.indicadores = resource.data;
+                this.loading = false;
+            } catch (e) {
                 console.log(e);
             }
+        },
+        async loadDirections() {
+            try {
+                const resource = await axios.get('http://localhost:3000/direction');
+                this.directions = resource.data;
+            } catch (e) {
+                console.log(e);
+            }
+        },
+        getDirectionId() {
+            const store = useAuthStore();
+            return store.user.user.direction.id;
+        },
+        searchDirections(event) {
+            setTimeout(() => {
+                if (!event.query.trim().length) {
+                    this.autoFilteredDirections = [...this.directions];
+                }
+                else {
+                    this.autoFilteredDirections = this.directions.filter((direction) => {
+                        return direction.name.toLowerCase().startsWith(event.query.toLowerCase());
+                    });
+                }
+            }, 250);
         }
 
     },
@@ -116,29 +160,49 @@ export default {
         }
     },
     mounted() {
-        this.loadData();
+        this.loadData(this.getDirectionId());
+        this.loadDirections();
     }
 }
 </script>
 <style>
- .tabla tr > td {
+.tabla tr>td {
     text-align: left;
     border: 1px solid #dee2e6;
     border-width: 0 0 1px 0 !important;
     padding: 1rem 1rem;
 
 }
+
 .tabla {
-  border-collapse: collapse;
-  width: 100%;
+    border-collapse: collapse;
+    width: 100%;
 }
 
-.tabla tr > th {
-   text-align: left;
+.tabla tr>th {
+    text-align: left;
     border: 1px solid #dee2e6;
     border-width: 0 0 1px 0 !important;
     padding: 1rem 1rem;
     font-family: var(--font-family);
     font-weight: bold !important;
+}
+
+
+@keyframes p-progress-spinner-color {
+    100%,
+    0% {
+        stroke: #d62d20;
+    }
+    40% {
+        stroke: #0057e7;
+    }
+    66% {
+        stroke: #008744;
+    }
+    80%,
+    90% {
+        stroke: #ffa700;
+    }
 }
 </style>

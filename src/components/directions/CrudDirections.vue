@@ -22,7 +22,7 @@
 				<DataTable ref="dt" :value="directions" v-model:selection="selectedDirections" dataKey="id"
 					:paginator="true" :rows="10" :filters="filters"
 					paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-					:rowsPerPageOptions="[5,10,25]"
+					:rowsPerPageOptions="[5, 10, 25]"
 					currentPageReportTemplate="Mostrando {first} hasta {last} de {totalRecords} direcciones"
 					responsiveLayout="scroll">
 					<template #header>
@@ -40,7 +40,7 @@
 					<Column field="name" header="Nombre" :sortable="true" headerStyle="width:14%; min-width:10rem;">
 						<template #body="slotProps">
 							<span class="p-column-title">Nombre</span>
-							{{slotProps.data.name}}
+							{{ slotProps.data.name }}
 						</template>
 					</Column>
 
@@ -50,17 +50,19 @@
 								@click="editDirection(slotProps.data)" />
 							<Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2"
 								@click="confirmDeleteDirection(slotProps.data)" />
+							<Button @click="showDialogCompany(slotProps.data.id)" label="Empresas"
+								class="margin2 p-button-raised p-button-rounded" />
 						</template>
 					</Column>
 				</DataTable>
 
-				<Dialog v-model:visible="directionDialog" :style="{width: '450px'}" header="Detalles dirección"
+				<Dialog v-model:visible="directionDialog" :style="{ width: '450px' }" header="Detalles dirección"
 					:modal="true" class="p-fluid">
 
 					<div class="field">
 						<label for="name">Nombre</label>
 						<InputText id="name" v-model.trim="direction.name" required="true" autofocus
-							:class="{'p-invalid': submitted && !direction.name}" />
+							:class="{ 'p-invalid': submitted && !direction.name }" />
 						<small class="p-invalid" v-if="submitted && !direction.name">Nombre es requerido.</small>
 					</div>
 
@@ -72,10 +74,11 @@
 					</template>
 				</Dialog>
 
-				<Dialog v-model:visible="deleteDirectionDialog" :style="{width: '450px'}" header="Confirmar" :modal="true">
+				<Dialog v-model:visible="deleteDirectionDialog" :style="{ width: '450px' }" header="Confirmar"
+					:modal="true">
 					<div class="flex align-items-center justify-content-center">
 						<i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-						<span v-if="direction">¿Seguro que desea eliminar <b>{{direction.name}}</b>?</span>
+						<span v-if="direction">¿Seguro que desea eliminar <b>{{ direction.name }}</b>?</span>
 					</div>
 					<template #footer>
 						<Button label="No" icon="pi pi-times" class="p-button-text"
@@ -84,15 +87,40 @@
 					</template>
 				</Dialog>
 
-				<Dialog v-model:visible="deleteDirectionsDialog" :style="{width: '450px'}" header="Confirm" :modal="true">
+				<Dialog v-model:visible="deleteDirectionsDialog" :style="{ width: '450px' }" header="Confirm"
+					:modal="true">
 					<div class="flex align-items-center justify-content-center">
 						<i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
 						<span v-if="direction">¿Seguro que desea eliminar las direcciones seleccionadas?</span>
 					</div>
 					<template #footer>
-						<Button label="No" icon="pi pi-times" class="p-button-text"	@click="deleteDirectionsDialog = false" />
+						<Button label="No" icon="pi pi-times" class="p-button-text"
+							@click="deleteDirectionsDialog = false" />
 						<Button label="Si" icon="pi pi-check" class="p-button-text" @click="deleteSelectedDirections" />
 					</template>
+				</Dialog>
+
+				<Dialog v-model:visible="compayDialog" :style="{ width: '650px' }" header="Empresas" :modal="true"
+					class="p-fluid">
+					<br>
+					<div>
+
+						<PickList v-model="companies" dataKey="name">
+							<template #sourceheader>
+								Available
+							</template>
+							<template #targetheader>
+								Selected
+							</template>
+							<template #item="slotProps">
+								<div class="p-caritem">
+									<div>
+										<span class="p-caritem-vin">{{ slotProps.item.name }}</span>
+									</div>
+								</div>
+							</template>
+						</PickList>
+					</div>
 				</Dialog>
 			</div>
 		</div>
@@ -115,6 +143,8 @@ export default {
 			selectedDirections: null,
 			filters: {},
 			submitted: false,
+			compayDialog: false,
+			companies: [[{id: 1, name: "asd"},{id: 2, name: "zxc"}],[]]
 		}
 	},
 	// directionService: null,
@@ -123,7 +153,7 @@ export default {
 		this.initFilters();
 	},
 	async mounted() {
-		this.loadData();	
+		this.loadData();
 	},
 	methods: {
 
@@ -173,16 +203,16 @@ export default {
 		},
 		confirmDeleteDirection(direction) {
 			console.log("pase por ConfirmDeleteDirection");
-			this.direction = direction;	
+			this.direction = direction;
 			this.deleteDirectionDialog = true;
 		},
 		async deleteDirection() {
-			console.log("pase por deleteDirection");	
-			console.log(this.direction.id)	;	
-      		const response = await axios.delete('http://localhost:3000/direction/'+ this.direction.id);
+			console.log("pase por deleteDirection");
+			console.log(this.direction.id);
+			const response = await axios.delete('http://localhost:3000/direction/' + this.direction.id);
 			console.log(response);
 			this.deleteDirectionDialog = false;
-			this.direction = {}; 
+			this.direction = {};
 			this.$toast.add({ severity: 'success', summary: 'Operación exitosa', detail: 'Dirección eliminada', life: 3000 });
 		},
 		findIndexById(id) {
@@ -217,10 +247,13 @@ export default {
 		},
 		loadData() {
 			axios.get('http://localhost:3000/direction').then(
-			(data) => {
-				this.directions = data.data;
-			}
-		);
+				(data) => {
+					this.directions = data.data;
+				}
+			);
+		},
+		showDialogCompany(id) {
+			this.compayDialog = true;
 		}
 	}
 }
@@ -228,4 +261,8 @@ export default {
 
 <style scoped lang="scss">
 @import '../src/assets/demo/badges.scss';
+
+.margin2 {
+	margin-left: 10px;
+}
 </style>
