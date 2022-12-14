@@ -50,7 +50,9 @@
 								@click="editDirection(slotProps.data)" />
 							<Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2"
 								@click="confirmDeleteDirection(slotProps.data)" />
-							<Button @click="showDialogCompany(slotProps.data.id)" label="Empresas"
+							<Button @click="showDialogCompany(slotProps.data)" label="Empresas"
+								class="margin2 p-button-raised p-button-rounded" />
+								<Button @click="showDialogIndicators(slotProps.data.id)" label="Indicadores"
 								class="margin2 p-button-raised p-button-rounded" />
 						</template>
 					</Column>
@@ -105,17 +107,44 @@
 					<br>
 					<div>
 
-						<PickList v-model="companies" dataKey="name">
+						<PickList v-model="pickcompanies" dataKey="name">
 							<template #sourceheader>
-								Available
+								Seleccionadas
 							</template>
 							<template #targetheader>
-								Selected
+								Total
 							</template>
 							<template #item="slotProps">
 								<div class="p-caritem">
 									<div>
 										<span class="p-caritem-vin">{{ slotProps.item.name }}</span>
+									</div>
+								</div>
+							</template>
+						</PickList>
+						<div >
+						<Button label="Cancelar" icon="pi pi-times" class="p-button-text" @click="hidecompanyDialog" />
+						<Button label="Guardar" icon="pi pi-check" class="p-button-text" @click="saveRelations" />
+					    </div>
+					</div>
+					
+				</Dialog>
+				<Dialog v-model:visible="indicatorDialog" :style="{ width: '650px' }" header="Indicadores" :modal="true"
+					class="p-fluid">
+					<br>
+					<div>
+
+						<PickList v-model="indicators" dataKey="id">
+							<template #sourceheader>
+								Seleccionados
+							</template>
+							<template #targetheader>
+								Todos
+							</template>
+							<template #item="slotProps">
+								<div class="p-caritem">
+									<div>
+										<span class="p-caritem-vin">{{ slotProps.data.name }}</span>
 									</div>
 								</div>
 							</template>
@@ -144,7 +173,10 @@ export default {
 			filters: {},
 			submitted: false,
 			compayDialog: false,
-			companies: [[{id: 1, name: "asd"},{id: 2, name: "zxc"}],[]]
+			companies: {},
+			indicatorDialog: false,
+			indicator: {},
+			pickcompanies: null,
 		}
 	},
 	// directionService: null,
@@ -170,14 +202,29 @@ export default {
 		hideDialog() {
 			this.directionDialog = false;
 			this.submitted = false;
+	
+		},
+		hidecompanyDialog() {
+			this.compayDialog = false;
+
 		},
 		async saveDirection() {
 			this.submitted = true;
 			if (this.direction.name.trim()) {
 				if (this.direction.id) {
+                      const {id, ...data} = this.direction;
+					try {
+						await axios.patch('http://localhost:3000/direction/' + id, data);
+						this.$toast.add({ severity: 'success', summary: 'Successful', detail: 'Dirección guardada con éxito', life: 3000 });
+						this.loadData();
+					} catch (error) {
+						this.$toast.add({ severity: 'error', summary: 'Error', detail: error, life: 3000 });
+						console.log(error);
 
-					this.directions[this.findIndexById(this.direction.id)] = this.direction;
-					this.$toast.add({ severity: 'success', summary: 'Successful', detail: 'Dirección modificada con éxito', life: 3000 });
+					} finally {
+						this.directionDialog = false;
+						this.direction = {};
+					}
 				}
 				else {
 					try {
@@ -196,6 +243,13 @@ export default {
 				}
 
 			}
+		},
+		saveRelations(){
+			console.log(this.direction);
+			this.direction.companies = this.pickcompanies[0];
+			this.saveDirection();
+			this.hidecompanyDialog();
+			
 		},
 		editDirection(direction) {
 			this.direction = { ...direction };
@@ -251,10 +305,40 @@ export default {
 					this.directions = data.data;
 				}
 			);
+			axios.get('http://localhost:3000/company').then(
+				(data) => {
+					this.companies = data.data;
+				}
+			);
+			axios.get('http://localhost:3000/indicator').then(
+				(data) => {
+					this.indicators = data.data;
+				}
+			);
 		},
-		showDialogCompany(id) {
+		async createList(id){
+			const  response = await axios.get('http://localhost:3000/direction/'+ id);
+			const belongcompanies = response.data.companies;
+			console.log(belongcompanies);       
+			const companies = this.companies.filter((company)=>{ 
+				
+				let a =  belongcompanies.filter((element)=> {
+					return element.id === company.id;
+				});
+				return a.length === 0;
+
+			})
+
+			return [belongcompanies, companies];
+		},
+		async showDialogCompany(direction) {
+			this.pickcompanies = await this.createList(direction.id);
+	        this.direction = direction;
 			this.compayDialog = true;
-		}
+		},
+		showDialogIndicators(id) {
+			this.indicatorDialog = true;
+		},
 	}
 }
 </script>
@@ -265,4 +349,6 @@ export default {
 .margin2 {
 	margin-left: 10px;
 }
+
+
 </style>

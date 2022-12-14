@@ -146,8 +146,9 @@ export default {
 			if (this.company.name.trim()) {
 				if (this.company.id) {
 
-					this.companies[this.findIndexById(this.company.id)] = this.company;
+					await axios.patch('http://localhost:3000/company/'+ this.company.id);
 					this.$toast.add({ severity: 'success', summary: 'Successful', detail: 'Empresa modificada con éxito', life: 3000 });
+				    this.loadData();
 				}
 				else {
 					try {
