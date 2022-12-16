@@ -26,8 +26,7 @@ const admin = [
             { label: 'Direcciones', icon: 'pi pi-fw  pi-list', to: '/directions' },
             { label: 'Tipos de indicadores', icon: 'pi pi-fw  pi-list', to: '/indicators' },
             { label: 'Unidades de medida', icon: 'pi pi-fw  pi-list', to: '/measurementunits' },
-            { label: 'Indicadores-dirección', icon: 'pi pi-fw  pi-list', to: '/indicatordirection' },
-            { label: 'Empresas-dirección', icon: 'pi pi-fw  pi-list', to: '/companydirection' },
+           
             { label: 'Reportes', icon: 'pi pi-fw  pi-list', to: '/reportes' }
 
         ]

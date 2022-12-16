@@ -52,7 +52,7 @@
 								@click="confirmDeleteDirection(slotProps.data)" />
 							<Button @click="showDialogCompany(slotProps.data)" label="Empresas"
 								class="margin2 p-button-raised p-button-rounded" />
-								<Button @click="showDialogIndicators(slotProps.data.id)" label="Indicadores"
+							<Button @click="showDialogIndicator(slotProps.data)" label="Indicadores"
 								class="margin2 p-button-raised p-button-rounded" />
 						</template>
 					</Column>
@@ -129,27 +129,32 @@
 					</div>
 					
 				</Dialog>
-				<Dialog v-model:visible="indicatorDialog" :style="{ width: '650px' }" header="Indicadores" :modal="true"
+				<Dialog v-model:visible="indicatorDialog" :style="{ width: '650px' }" header="Empresas" :modal="true"
 					class="p-fluid">
 					<br>
 					<div>
 
-						<PickList v-model="indicators" dataKey="id">
+						<PickList v-model="pickindicators" dataKey="name">
 							<template #sourceheader>
 								Seleccionados
 							</template>
 							<template #targetheader>
-								Todos
+								Total
 							</template>
 							<template #item="slotProps">
 								<div class="p-caritem">
 									<div>
-										<span class="p-caritem-vin">{{ slotProps.data.name }}</span>
+										<span class="p-caritem-vin">{{ slotProps.item.name }}</span>
 									</div>
 								</div>
 							</template>
 						</PickList>
+						<div >
+						<Button label="Cancelar" icon="pi pi-times" class="p-button-text" @click="hideindicatorDialog" />
+						<Button label="Guardar" icon="pi pi-check" class="p-button-text" @click="saveRelations2" />
+					    </div>
 					</div>
+					
 				</Dialog>
 			</div>
 		</div>
@@ -173,10 +178,13 @@ export default {
 			filters: {},
 			submitted: false,
 			compayDialog: false,
+			indicatorDialog: false,
 			companies: {},
+			indicators: {},
 			indicatorDialog: false,
 			indicator: {},
 			pickcompanies: null,
+			pickindicators: null,
 		}
 	},
 	// directionService: null,
@@ -206,6 +214,10 @@ export default {
 		},
 		hidecompanyDialog() {
 			this.compayDialog = false;
+
+		},
+		hideindicatorDialog() {
+			this.indicatorDialog = false;
 
 		},
 		async saveDirection() {
@@ -249,6 +261,13 @@ export default {
 			this.direction.companies = this.pickcompanies[0];
 			this.saveDirection();
 			this.hidecompanyDialog();
+			
+		},
+		saveRelations2(){
+			console.log(this.direction);
+			this.direction.indicators = this.pickindicators[0];
+			this.saveDirection();
+			this.hideindicatorDialog();
 			
 		},
 		editDirection(direction) {
@@ -331,12 +350,29 @@ export default {
 
 			return [belongcompanies, companies];
 		},
+		async createList2(id){
+			const  response = await axios.get('http://localhost:3000/direction/'+ id);
+			const belongindicators = response.data.indicators;
+			console.log(belongindicators);       
+			const indicators = this.indicators.filter((indicator)=>{ 
+				
+				let a =  belongindicators.filter((element)=> {
+					return element.id === indicator.id;
+				});
+				return a.length === 0;
+
+			})
+
+			return [belongindicators, indicators];
+		},
 		async showDialogCompany(direction) {
 			this.pickcompanies = await this.createList(direction.id);
 	        this.direction = direction;
 			this.compayDialog = true;
 		},
-		showDialogIndicators(id) {
+		async showDialogIndicator(direction) {
+			this.pickindicators = await this.createList2(direction.id);
+	        this.direction = direction;
 			this.indicatorDialog = true;
 		},
 	}
